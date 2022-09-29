@@ -1,0 +1,24 @@
+{
+  "dependencies": {
+    "@lit/reactive-element": "^1.0.0",
+    "axios": "^0.27.2",
+    "lit": "^2.0.0",
+    "lit-element": "^3.0.0",
+    "lit-html": "^2.0.0",
+    "webpack-dev-server": "^4.11.1"
+  },
+  "name": "front-end-app",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "web-dev-server --node-resolve --open --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "devDependencies": {
+    "@web/dev-server": "^0.1.34"
+  },
+  "license": "ISC",
+  "description": ""
+}
