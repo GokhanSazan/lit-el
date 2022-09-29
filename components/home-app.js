@@ -44,8 +44,8 @@ export class HomeApp extends LitElement {
   }
 
   urlChanged(e) {
+    debugger;
     this.urlSelected = e.detail;
-    localStorage.setItem('userId', this.loginId);
   }
 
   registerRequested() {
@@ -63,6 +63,19 @@ export class HomeApp extends LitElement {
   stopApp(e) {
     this.id = -1;
     this.success = false;
+  }
+
+  goWorks() {
+    this.dispatchEvent(
+      new CustomEvent("work", {
+        detail: {
+          login: true,
+          loginId: this.id,
+        },
+        bubbles: true,
+        composed: true,
+      })
+    );
   }
 
   paintLandingPage() {

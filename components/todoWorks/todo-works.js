@@ -152,7 +152,8 @@ export class ToDoWorksApp extends LitElement {
     super();
     this.todoworks = {};
     this.returnTodosList = {};
-    this.getResponse("http://localhost:8081/todo/getTodos",localStorage.getItem('userId'));
+    let a = localStorage.getItem('userId')
+    this.getResponse("http://localhost:8081/todo/getTodos",a);
   }
   $get = (elem) => this.shadowRoot.querySelector(elem);
   startApp(e) {
