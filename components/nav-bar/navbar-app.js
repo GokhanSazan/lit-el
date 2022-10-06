@@ -155,11 +155,13 @@ class NavBar extends LitElement {
     return {
       navPages: {},
       urlSelected: {},
+      username: String
     };
   }
 
   constructor() {
     super();
+    this.username = localStorage.getItem('username');
     this.navPages = [
       {
         text: "LIST WORKS",
@@ -176,7 +178,7 @@ class NavBar extends LitElement {
         all: true,
       },
       {
-        text: "PROFILE",
+        text: "USERS PROFILE",
         active: true,
         url: "#",
         selected: "user-profile",
@@ -184,7 +186,6 @@ class NavBar extends LitElement {
       },
     ];
   }
-
   activeButton(event) {
     const input = event.target;
     this.navPages.forEach((item) =>
@@ -234,12 +235,12 @@ class NavBar extends LitElement {
             ${this.paintTabs()}
           </div>
           <div class="navbar-block">
+            <div style="background-color: aqua;font-weight: bolder;color: black;">${this.username}</div>
             <a
               @click=${this.logOut}
               href="#"
               class="navbar-item btn-green not-allowed"
-              >Logout</a
-            >
+              >Logout</a>
             <div>Login</div>
           </div>
         </div>

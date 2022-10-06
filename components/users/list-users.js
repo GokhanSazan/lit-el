@@ -1,6 +1,5 @@
 import { LitElement, html, css } from "lit-element";
-
-export class ProfileFormApp extends LitElement {
+export class UsersFormApp extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -41,7 +40,7 @@ export class ProfileFormApp extends LitElement {
     }
 
     .login-block {
-      width: 450px;
+      width: 90%;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -52,10 +51,10 @@ export class ProfileFormApp extends LitElement {
       padding-top: 40px;
     }
     .login-block-p {
-      width: 50%;
+      width: 90%;
       display: flex;
       justify-content: flex-start;
-      color: white;
+      color: black;
       align-items: flex-start;
       flex-direction: column;
       padding: 50px;
@@ -107,6 +106,10 @@ export class ProfileFormApp extends LitElement {
       border: none;
       margin: 0;
     }
+    table, tr, td {
+     border: 1px solid black;
+     background-color:#6FA6AE;
+    }
 
     button:hover {
       background-position: 0 center;
@@ -138,109 +141,73 @@ export class ProfileFormApp extends LitElement {
 
   static get properties() {
     return {
-      works: {
+      users: {
         id: Number,
-        userid: Number,
-        name: String,
-        priority: Number,
-        explanation: String,
+        userName: String,
+        password: String, // sileriz sonra
       },
     };
   }
   constructor() {
     super();
-    this.works = {};
+    this.users = {};
+    this.getUsersResponse("http://localhost:8081/todo/getAllUsers",-1); // -1 hepsine cek
+
   }
   $get = (elem) => this.shadowRoot.querySelector(elem);
-
-  _update() {
-    this.works.id = this.$get("#id").value;
-    this.works.userid = this.$get("#userid").value;
-    this.works.name = this.$get("#name").value;
-    this.works.priority = this.$get("#priority").value;
-    this.works.explanation = this.$get("#explanation").value;
-    const error = this.$get("#error");
-
-    if (this.works.id && this.works.userid && this.works.name && this.works.priority && this.works.explanation) {
-      this.postData("http://localhost:8081/todo/updateWork", this.works);
-    } else {
-      error.style.display = "block";
-    }
-  }
-  async postData(url = "", data = {}) {
-    const response = await fetch(url, {
-      method: "POST", 
-      headers: {
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-      mode: "cors", 
-      cache: "no-cache",
-      credentials: "same-origin", 
-      headers: {
-        "Content-Type": "application/json",
-      },
-      redirect: "follow",
-      referrerPolicy: "no-referrer", 
-      body: JSON.stringify(data),
-    }).then((response) => {
-      if (response.status == 200){
-        console.log("Update Success!");
-      }
-    }).catch(function (error) {
-      console.log(error);
-  })
-  }
+  async getUsersResponse(url,id) {
+	const response = await fetch(
+		url+'?id='+id,
+		{
+			method: 'GET',
+			headers: {
+                "Content-Type": "application/json",
+              },
+		}
+	);
+	if (!response.ok) {
+		throw new Error(`HTTP error! status: ${response.status}`);
+	}
+	const data = await response.json();
+  console.log(data);
+  this.users = data;
+}
   render() {
     return html`
       <div class="container">
         <div id="login">
           <div class="login-block">
-            <h2>Update Works</h2>
-            <input
-              id="id"
-              type="number"
-              name="id"
-              placeholder="id"
-              value=""
-            />
-            <input
-              id="userid"
-              type="number"
-              name="userid"
-              placeholder="User ID"
-              value=""
-            />
-            <input
-              id="name"
-              type="text"
-              name="name"
-              placeholder="Work Name"
-              value=""
-            />
-            <input
-              id="priority"
-              type="number"
-              name="priority"
-              max="10"
-              min="1"
-              placeholder="Priority (1-10)"
-              value=""
-            />
-            <input
-              id="explanation"
-              type="text"
-              name="explanation"
-              placeholder="Explanation"
-              value=""
-            />
-
-            <p id="error">Check The Work!</p>
-            <button @click=${this._update}>Update Work</button>
+            <h2>User List</h2>
+            <table style="width: 100%;">
+                    <tr>
+                    <td>
+                        User ID
+                    </td>
+                    <td>
+                        User Name
+                    </td>
+                    <td>
+                        Password
+                    </td>
+              </tr>
+            ${this.users && this.users.length > 0 && this.users.map((user) => 
+            html `<tr>
+                 <td>
+                 ${user.id}
+                 </td>
+                 <td>
+                 ${user.userName}
+                 </td>
+                 <td>
+                 ${user.password}
+                 </td>
+                </tr>`
+            )}
+            </table>
           </div>
         </div>
       </div>
     `;
   }
 }
-customElements.define("profile-form", ProfileFormApp);
+customElements.define("user-form", UsersFormApp);

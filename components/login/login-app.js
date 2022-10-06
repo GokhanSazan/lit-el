@@ -1,5 +1,5 @@
 import { LitElement, html, css } from "lit-element";
-
+import 'lit-toast/lit-toast.js';
 export class LoginApp extends LitElement {
   static styles = css`
     :host {
@@ -118,7 +118,10 @@ export class LoginApp extends LitElement {
     };
   }
   $get = (elem) => this.shadowRoot.querySelector(elem);
-
+  
+  _showToast(msg) {
+    this.shadowRoot.querySelector('lit-toast').show(msg, 3000);
+  }
   async login() {
     this.user.userName = this.$get("#username").value;
     this.user.password = this.$get("#password").value;
@@ -135,41 +138,22 @@ export class LoginApp extends LitElement {
       {
         method: 'GET',
         headers: {
-                  "Content-Type": "application/json",
-                },
+                  "Content-Type": "application/json"
+                }
       }
     );
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const data = await response.json();
-      console.log(data);
+    if (data !== -1){
       this.goHome(data);
+      localStorage.setItem('username', this.user.userName);
+    }else {
+      this._showToast("Login Failed! & User not exist!");
+    }
   }
-  /*async postData(url = "", data = {}) {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      mode: "cors", 
-      cache: "no-cache",
-      credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      redirect: "follow",
-      referrerPolicy: "no-referrer", 
-      param: JSON.stringify(data), 
-    }).then((response) => {
-      if (response.status == 200){
-        const data = response.json();
-        this.goHome(data.id);
-      }
-    }).catch(function (error) {
-      console.log(error);
-    });
-  }*/
+
   goHome(id) {
     this.dispatchEvent(
       new CustomEvent("sign", {
@@ -206,12 +190,13 @@ export class LoginApp extends LitElement {
             id="password"
             type="password"
             name="password"
-            placeholder="Password"
+            placeholder="password"
             value=""
           />
           <p id="error">Check The Rules!</p>
           <button @click=${this.login}>Login</button>
           <h2 @click=${this.registerRequsted}>Register</h2>
+          <lit-toast></lit-toast>
         </div>
       </div>
     `;

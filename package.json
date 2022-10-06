@@ -2,9 +2,14 @@
   "dependencies": {
     "@lit/reactive-element": "^1.0.0",
     "axios": "^0.27.2",
+    "cors": "^2.8.5",
+    "lightning": "^6.2.0",
+    "lightning-base-components": "^1.16.4-alpha",
     "lit": "^2.0.0",
     "lit-element": "^3.0.0",
     "lit-html": "^2.0.0",
+    "lit-toast": "^1.5.1",
+    "lwc": "^2.24.0",
     "webpack-dev-server": "^4.11.1"
   },
   "name": "front-end-app",

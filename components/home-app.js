@@ -44,7 +44,6 @@ export class HomeApp extends LitElement {
   }
 
   urlChanged(e) {
-    debugger;
     this.urlSelected = e.detail;
   }
 
@@ -63,6 +62,7 @@ export class HomeApp extends LitElement {
   stopApp(e) {
     this.id = -1;
     this.success = false;
+    this.urlSelected = "user-profile"
   }
 
   goWorks() {
@@ -107,10 +107,10 @@ export class HomeApp extends LitElement {
                     <footer-app></footer-app>
                   `
             : this.urlSelected === "work-add"
-              ? html` <todo-works-app .loginId="${this.id}"></todo-works-app>
+              ? html` <add-works-app .loginId="${this.id}"></add-works-app>
                       <footer-app></footer-app>
                     `
-              : html`<profile-form></profile-form>
+              : html`<user-form></user-form>
                       <footer-app></footer-app>
                     `}
             `

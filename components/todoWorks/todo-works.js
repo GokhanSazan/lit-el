@@ -1,5 +1,5 @@
 import { LitElement, html, css } from "lit-element";
-
+import 'lit-toast/lit-toast.js';
 export class ToDoWorksApp extends LitElement {
   static styles = css`
     :host {
@@ -41,7 +41,7 @@ export class ToDoWorksApp extends LitElement {
     }
 
     .login-block {
-      width: 450px;
+      width: 90%;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -52,10 +52,10 @@ export class ToDoWorksApp extends LitElement {
       padding-top: 40px;
     }
     .login-block-p {
-      width: 50%;
+      width: 90%;
       display: flex;
       justify-content: flex-start;
-      color: white;
+      color: black;
       align-items: flex-start;
       flex-direction: column;
       padding: 50px;
@@ -109,7 +109,7 @@ export class ToDoWorksApp extends LitElement {
     }
     table, tr, td {
      border: 1px solid black;
-     background-color:grey;
+     background-color:#e0c4c4;
     }
     button:hover {
       background-position: 0 center;
@@ -138,49 +138,45 @@ export class ToDoWorksApp extends LitElement {
   static get properties() {
     return {
       todoworks: {
-        id:Number,
-        userId: Number,
+        id: Number,
+        userid: Number,
         name: String,
         priority: Number,
         explanation: String,
       },
-      returnTodosList:{},
-      loginId:Number,
+      returnTodosList:{}
     };
   }
   constructor() {
     super();
     this.todoworks = {};
-    this.returnTodosList = {};
-    let a = localStorage.getItem('userId')
-    this.getResponse("http://localhost:8081/todo/getTodos",a);
+    this.todoworks.userid = localStorage.getItem('userId');
+    this.returnTodosList =  {};
+    this.getResponse("http://localhost:8081/todo/getTodos",this.todoworks.userid);
+  }
+  _showToast(msg) {
+    this.shadowRoot.querySelector('lit-toast').show(msg, 3000);
   }
   $get = (elem) => this.shadowRoot.querySelector(elem);
-  startApp(e) {
-    this.loginId = e.detail.loginId;
-    
-  }
-  _saveworks() {
-    this.todoworks.id = this.$get("#id").value;
-    this.todoworks.userid = this.loginId;
+   _update(event){
+    console.log('update');
+    this.todoworks.id = event.target.attributes["data-select-id-u"].value;
+    this.todoworks.userid = localStorage.getItem('userId');
     this.todoworks.name = this.$get("#name").value;
     this.todoworks.priority = this.$get("#priority").value;
     this.todoworks.explanation = this.$get("#explanation").value;
     const error = this.$get("#error");
-
-    if (this.todoworks.id && this.todoworks.userid && this.todoworks.name && this.todoworks.priority && this.todoworks.explanation) {
-      this.postData("http://localhost:8081/todo/saveWork", this.todoworks);
-    } else {
-      error.style.display = "block";
-    }
+    this.postDataUpdate("http://localhost:8081/todo/updateWork", this.todoworks);
   }
-  async postData(url = "", data = {}) {
 
+   _delete(event){
+    console.log('delete');
+    this.todoworks.id = event.target.attributes["data-select-id-d"].value;
+    this.postDataDelete("http://localhost:8081/todo/deleteWork", this.todoworks.id);
+  }
+
+  async postDataUpdate(url = "", data = {}) {
     const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       method: "POST",
       mode: "cors", 
       cache: "no-cache",
@@ -193,60 +189,58 @@ export class ToDoWorksApp extends LitElement {
       body: JSON.stringify(data),
     }).then((response) => {
         if (response.status == 200){
+          this._showToast("Work id is '" + this.todoworks.id + "' updated!");
           this.getResponse("http://localhost:8081/todo/getTodos",this.todoworks.userid);
         }
       }).catch(function (error) {
-        console.log(error);
+        this._showToast("Work id is '" + this.todoworks.id + "' updated FAILED! " + error );
+    })
+  }
+  async postDataDelete(url = "", data = {}) {
+    const response = await fetch(url, {
+      method: "POST",
+      mode: "cors", 
+      cache: "no-cache",
+      credentials: "same-origin",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      redirect: "follow", 
+      referrerPolicy: "no-referrer",
+      body: JSON.stringify(data),
+    }).then((response) => {
+        if (response.status == 200){
+          this._showToast("Work id is '" + this.todoworks.id + "' deleted!");
+          this.getResponse("http://localhost:8081/todo/getTodos",this.todoworks.userid);
+        }
+      }).catch(function (error) {
+        this._showToast("Work id is '" + this.todoworks.id + "' delete FAILED! " + error );
     })
   }
   async getResponse(url,userid) {
-	const response = await fetch(
-		url+'?userid='+userid,
-		{
-			method: 'GET',
-			headers: {
-                "Content-Type": "application/json",
-              },
-		}
-	);
-	if (!response.ok) {
-		throw new Error(`HTTP error! status: ${response.status}`);
-	}
-	const data = await response.json();
+    const response = await fetch(
+      url+'?userid='+userid,
+      {
+        method: 'GET',
+        headers: {
+                  "Content-Type": "application/json"
+                }
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
     console.log(data);
     this.returnTodosList = data;
-}
- async getData(url,userId){
-    const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "GET",
-        mode: "cors", 
-        cache: "no-cache",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        redirect: "follow", 
-        referrerPolicy: "no-referrer",
-        body: JSON.stringify(userId),
-      }).then((response) => {
-          if (response.status == 200){
-            console.log(response.json())
-          }
-        }).catch(function (error) {
-          console.log(error);
-      })
   }
   render() {
     return html`
       <div class="container">
         <div id="login">
           <div class="login-block-p">
-            <h1>TO DO WORKS</h1>
-            <table>
+            <h1 style="color: aliceblue;">TO DO WORKS</h1>
+            <table style="width: 100%;">
                     <tr>
                     <td>
                         ID
@@ -255,7 +249,7 @@ export class ToDoWorksApp extends LitElement {
                         User Id
                     </td>
                     <td>
-                        Name
+                        Work Name
                     </td>
                     <td>
                         Priority
@@ -273,58 +267,49 @@ export class ToDoWorksApp extends LitElement {
                  ${todo.userid}
                  </td>
                  <td>
-                 ${todo.name}
+                 <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  value= ${todo.name}
+                  />
                  </td>
                  <td>
-                 ${todo.priority}
+                 <input
+                  id="priority"
+                  type="number"
+                  name="priority"
+                  max="10"
+                  min="1"
+                  value=${todo.priority}
+                />
                  </td>
                  <td>
-                 ${todo.explanation}
+                 <input
+                  id="explanation"
+                  type="text"
+                  name="explanation"
+                  value=${todo.explanation}
+                  />
+                 </td>
+                <td>
+                 <button 
+                  @click=${this._update}
+                  data-select-id-u=${todo.id}>
+                  Update
+                </button>
+                 </td>
+                 <td>
+                 <button 
+                 @click=${this._delete}
+                 data-select-id-d=${todo.id}>
+                 Delete
+                </button>
                  </td>
                 </tr>`
             )}
             </table>
-          </div>
-          <div class="login-block">
-            <h2>Add New Work to The System</h2>
-            <input
-              id="id"
-              type="number"
-              name="id"
-              placeholder="id"
-              value=""
-            />
-            <input
-              id="userid"
-              type="number"
-              name="userid"
-              placeholder="User ID"
-              value=""
-            />
-            <input
-              id="name"
-              type="text"
-              name="name"
-              placeholder="Work Name"
-              value=""
-            />
-            <input
-              id="priority"
-              type="number"
-              name="priority"
-              max="10"
-              min="1"
-              placeholder="Priority (1-10)"
-              value=""
-            />
-            <input
-              id="explanation"
-              type="text"
-              name="explanation"
-              placeholder="Explanation"
-              value=""
-            />
-            <button @click=${this._saveworks}>SAVE WORKS</button>
+            <lit-toast></lit-toast>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit-element";
-
-export class ProfileFormApp extends LitElement {
+import 'lit-toast/lit-toast.js';
+export class AddWorksApp extends LitElement {
   static styles = css`
     :host {
       display: block;
@@ -18,7 +18,7 @@ export class ProfileFormApp extends LitElement {
       margin-left: auto;
       margin-right: auto;
       max-width: 100%;
-      min-height: 530px;
+      min-height: 500px;
       width: 100%;
     }
     #login {
@@ -107,16 +107,15 @@ export class ProfileFormApp extends LitElement {
       border: none;
       margin: 0;
     }
-
+    table, tr, td {
+     border: 1px solid black;
+     background-color:grey;
+    }
     button:hover {
       background-position: 0 center;
     }
 
     @media screen and (max-width: 767px) {
-      h2 {
-        font-size: 13px;
-        margin-bottom: 13px;
-      }
       h2 {
         font-size: 13px;
         margin-bottom: 13px;
@@ -138,79 +137,65 @@ export class ProfileFormApp extends LitElement {
 
   static get properties() {
     return {
-      works: {
-        id: Number,
-        userid: Number,
-        name: String,
-        priority: Number,
-        explanation: String,
-      },
-    };
+        works: {
+          userid: Number,
+          name: String,
+          priority: Number,
+          explanation: String,
+        },
+      };
   }
   constructor() {
     super();
-    this.works = {};
+    this.todoworks = {};
   }
   $get = (elem) => this.shadowRoot.querySelector(elem);
-
-  _update() {
-    this.works.id = this.$get("#id").value;
-    this.works.userid = this.$get("#userid").value;
-    this.works.name = this.$get("#name").value;
-    this.works.priority = this.$get("#priority").value;
-    this.works.explanation = this.$get("#explanation").value;
-    const error = this.$get("#error");
-
-    if (this.works.id && this.works.userid && this.works.name && this.works.priority && this.works.explanation) {
-      this.postData("http://localhost:8081/todo/updateWork", this.works);
+  _showToast(msg) {
+    this.shadowRoot.querySelector('lit-toast').show(msg, 3000);
+  }
+  _saveworks() {
+    if (this.$get("#priority").value > 10 || this.$get("#priority").value < 1){
+        this._showToast("Please select priority in (1-10)");
     } else {
-      error.style.display = "block";
+        this.todoworks.userid = localStorage.getItem("userId");
+        this.todoworks.name = this.$get("#name").value;
+        this.todoworks.priority = this.$get("#priority").value;
+        this.todoworks.explanation = this.$get("#explanation").value;
+        const error = this.$get("#error");
+        if ( this.todoworks.userid && this.todoworks.name && this.todoworks.priority && this.todoworks.explanation) {
+        this.postData("http://localhost:8081/todo/saveWork", this.todoworks);
+        } else {
+        error.style.display = "block";
+        }
     }
   }
   async postData(url = "", data = {}) {
+
     const response = await fetch(url, {
-      method: "POST", 
-      headers: {
-        "Content-Type": "application/json",
-      },
       method: "POST",
       mode: "cors", 
       cache: "no-cache",
-      credentials: "same-origin", 
+      credentials: "same-origin",
       headers: {
         "Content-Type": "application/json",
       },
-      redirect: "follow",
-      referrerPolicy: "no-referrer", 
+      redirect: "follow", 
+      referrerPolicy: "no-referrer",
       body: JSON.stringify(data),
     }).then((response) => {
-      if (response.status == 200){
-        console.log("Update Success!");
-      }
-    }).catch(function (error) {
-      console.log(error);
-  })
+        if (response.status == 200){
+            this._showToast("Work is '" + this.todoworks.name + "' saved!");
+        }
+      }).catch(function (error) {
+        this._showToast("Work is '" + this.todoworks.name + "' not saved!" + error);
+    })
   }
   render() {
     return html`
       <div class="container">
         <div id="login">
           <div class="login-block">
-            <h2>Update Works</h2>
-            <input
-              id="id"
-              type="number"
-              name="id"
-              placeholder="id"
-              value=""
-            />
-            <input
-              id="userid"
-              type="number"
-              name="userid"
-              placeholder="User ID"
-              value=""
-            />
+            <h2>Add New Work to The System</h2>
             <input
               id="name"
               type="text"
@@ -234,13 +219,12 @@ export class ProfileFormApp extends LitElement {
               placeholder="Explanation"
               value=""
             />
-
-            <p id="error">Check The Work!</p>
-            <button @click=${this._update}>Update Work</button>
+            <button @click=${this._saveworks}>SAVE WORKS</button>
+            <lit-toast></lit-toast>
           </div>
         </div>
       </div>
     `;
   }
 }
-customElements.define("profile-form", ProfileFormApp);
+customElements.define("add-works-app", AddWorksApp);

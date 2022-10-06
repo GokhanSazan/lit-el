@@ -1,5 +1,5 @@
 import { LitElement, html, css } from "lit-element";
-
+import 'lit-toast/lit-toast.js';
 export class RegisterApp extends LitElement {
   static styles = css`
     :host {
@@ -112,23 +112,20 @@ export class RegisterApp extends LitElement {
   $get = (elem) => this.shadowRoot.querySelector(elem);
   static get properties() {
     return {
-      user: { id:Number,userName: String, password: String,  password2: String },
+      user: {userName: String, password: String },
     };
   }
 
   constructor() {
     super(), (this.user = {});
   }
-
+  _showToast(msg) {
+    this.shadowRoot.querySelector('lit-toast').show(msg, 3000);
+  }
   async register() {
-    this.user.id = this.$get("#id").value;
     this.user.userName = this.$get("#username").value;
-    this.user.password = this.$get("#password1").value;
-    this.user.password2 = this.$get("#password2").value;
-    if(this.user.id && this.user.password && this.user.password2 &&
-      (this.user.password !== this.user.password2)){
-        console.log('Check Password not same!!!');
-    }
+    this.user.password = this.$get("#password").value;
+
     const error = this.$get("#error");
 
     console.log(JSON.stringify(this.user));
@@ -139,33 +136,50 @@ export class RegisterApp extends LitElement {
     }
 
   }
-  async postData(url = "", data = {}) {
+  async postData(url, data) {
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      method: "POST", 
-      mode: "cors", 
+      mode: "cors",
       cache: "no-cache",
       credentials: "same-origin",
-      headers: {
-        "Content-Type": "application/json",
-      },
       redirect: "follow",
-      referrerPolicy: "no-referrer", 
-      body: JSON.stringify(data), 
+      referrerPolicy: "no-referrer",
+      body: JSON.stringify(data)
     }).then((response) => {
       if (response.status == 200){
-        this.goHome(this.user.id);
+        this.getResponse("http://localhost:8081/todo/login", this.user.userName,this.user.password);
       }
-    }).catch(function (error) {
-      console.log(error);
-  });
+    }).catch((err)=>{
+      console.log(err);
+    });
+  }
+  async getResponse(url, userName, password) {
+    const response = await fetch(
+      url+'?userName='+userName+'&password='+password,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    if (data !== -1){
+      this._showToast("Register Success!");
+      //this.goHome(data);
+    }else {
+      this._showToast("Register Failed!");
+    }
   }
   goHome(id) {
     this.dispatchEvent(
-      new CustomEvent("sign", {
+      new CustomEvent("loginreq", {
         detail: {
           login: true,
           loginId: id,
@@ -189,13 +203,6 @@ export class RegisterApp extends LitElement {
           />
           <h2>Welcome, Please Save Your Credentials</h2>
           <input
-            id="id"
-            type="number"
-            name="id"
-            placeholder="id"
-            value=""
-          />
-          <input
             id="username"
             type="text"
             name="username"
@@ -203,21 +210,16 @@ export class RegisterApp extends LitElement {
             value=""
           />
           <input
-            id="password1"
+            id="password"
             type="password"
-            name="password1"
-            placeholder="password"
-            value=""
-          /><input
-            id="password2"
-            type="password"
-            name="password2"
+            name="password"
             placeholder="password"
             value=""
           />
           <p id="error">Check The Rules!</p>
           <button @click=${this.register}>Registers</button>
           <h2 @click=${this.loginRequested}>Login</h2>
+          <lit-toast></lit-toast>
         </div>
       </div>
     `;
